@@ -69,6 +69,6 @@ Template.blogShowBody.rendered = ->
 
   $(".fb-share").attr "href", href
 
-  $(".tw-share, .fb-share").click = ->
+  $(".tw-share, .fb-share").click ->
      window.location.href = $(this).attr("href")
   
