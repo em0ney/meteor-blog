@@ -12,7 +12,7 @@
   <article class="post">
     <h2>{{title}}</h2>
     <div class="post-meta">
-      {{authorName}} on {{blogFormatDate publishedAt}}
+      {{{authorName}}} on {{blogFormatDate publishedAt}}
       {{> blogTags }}
     </div>
     <div class="the-content">
@@ -26,4 +26,5 @@
     <button class="btn btn-primary btn-facebook fb-share"><i class="icon-facebook"></i>Share on Facebook</button>
     <button class="btn btn-info btn-twitter tw-share"><i class="icon-twitter"></i>Share on Twitter</button>
   </div>
+  {{>disqus}}
 </template>
