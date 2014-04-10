@@ -1,12 +1,10 @@
 <template name="blogShow">
   <div id="meteor-blog" class="blog-single">
-    <div class="container">
       <div class="row">
-        <div class="col-md-8 col-md-offset-2">
+        <div class="col-md-10">
           {{> blogShowBody}}
         </div>
       </div>
-    </div>
   </div>
 </template>
 
@@ -14,8 +12,9 @@
   <article class="post">
     <h2>{{title}}</h2>
     <div class="post-meta">
-      By {{authorName}} on {{blogFormatDate publishedAt}}
+      By {{{authorName}}} on {{blogFormatDate publishedAt}}
       {{> blogTags }}
+      {{> shareWidgets }}
     </div>
     <div class="the-content">
       {{{html}}}
@@ -28,4 +27,5 @@
     <a target="_blank" class="btn-facebook fb-share" href="#"><i class="icon-facebook"></i>Share on Facebook </a>
     <a class="btn-twitter tw-share" href="#"><i class="icon-twitter"></i>Share on Twitter </a>
   </div>
+  {{>disqus}}
 </template>

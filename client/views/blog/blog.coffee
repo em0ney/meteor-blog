@@ -11,6 +11,13 @@ Template.blogShowBody.rendered = ->
   # OpenGraph tags
   #
 
+  $('<link>', { href: 'https://www.google.com/+ElliottSpira', rel: 'author' }).appendTo 'head'
+  $('<meta>', { name: 'description', content: @data.excerpt }).appendTo 'head'
+  if $("title")
+    $("title").html @data.title
+  else 
+    $('<title>', { name: 'title', content: @data.title }).appendTo 'head'
+
   $('<meta>', { property: 'og:type', content: 'article' }).appendTo 'head'
   $('<meta>', { property: 'og:site_name', content: location.hostname }).appendTo 'head'
   $('<meta>', { property: 'og:url', content: location.origin + location.pathname }).appendTo 'head'
@@ -68,3 +75,6 @@ Template.blogShowBody.rendered = ->
     href += "&p[images][0]=" + encodeURIComponent img
 
   $(".fb-share").attr "href", href
+
+Template.shareWidgets.rendered = ->
+  twttr.widgets.load();

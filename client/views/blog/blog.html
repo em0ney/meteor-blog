@@ -1,13 +1,11 @@
 <template name="blogIndex">
   <div id="meteor-blog" class="blog-list">
-    <div class="container">
       <div class="row">
-        <div class="col-md-8 col-md-offset-2">
+        <div class="col-md-10">
           {{> blogIndexLoop}}
           {{blogPager}}
         </div>
       </div>
-    </div>
   </div>
 </template>
 
@@ -18,8 +16,9 @@
         <a href="{{pathFor 'blogShow'}}">{{title}}</a>
       </h2>
       <div class="post-meta">
-        By {{authorName}} on {{blogFormatDate publishedAt}}
+        By {{{authorName}}} on {{blogFormatDate publishedAt}}
         {{> blogTags }}
+        {{> shareWidgets }}
       </div>
       <div class="the-content">
         {{{excerpt}}}
@@ -37,3 +36,10 @@
     </div>
   {{/if}}
 </template>
+
+<template name="shareWidgets">
+  <div class="shareWidgets">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-url="{{urlFor 'blogShow'}}" data-text="{{title}}" data-hashtags="{{ joinTags tags }}" via="ElliottSpira">Tweet</a>
+  </div>
+</template>
+
