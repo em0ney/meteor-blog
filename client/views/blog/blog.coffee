@@ -95,8 +95,6 @@ Template.blogShowBody.rendered = ->
     $('<meta>', { name: 'robots', content: 'noindex,nofollow' }).appendTo 'head'
 
 
-  $(".fb-share").attr "href", href
-
 Template.shareWidgets.rendered = ->
   twttr.widgets.load();
   
