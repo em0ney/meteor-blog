@@ -1,9 +1,10 @@
-class @BlogController extends RouteController
-  action: ->
-    if @ready()
-      @render()
-    else if Template['loading']
-      @render 'loading'
+if Meteor.isClient
+  Router.onBeforeAction 'loading'
+  Router.onBeforeAction (pause) ->
+    if @_dataValue is null or typeof @_dataValue is 'undefined'
+      return
+
+    Router.hooks.dataNotFound.call @, pause
 
 Router.map ->
 
@@ -25,12 +26,9 @@ Router.map ->
 
   @route 'blogIndex',
     path: '/blog'
-    controller: 'BlogController'
+    template: 'dynamic'
 
-    onBeforeAction: ->
-      if Blog.settings.blogIndexTemplate
-        @template = Blog.settings.blogIndexTemplate
-
+    onRun: ->
       if not Session.get('postLimit') and Blog.settings.pageSize
         Session.set 'postLimit', Blog.settings.pageSize
 
@@ -42,11 +40,8 @@ Router.map ->
     fastRender: true
 
     data: ->
-      posts: Post.where
-        published: true
-      ,
-        sort:
-          publishedAt: -1
+      posts: Post.where {},
+        sort: publishedAt: -1
 
   #
   # Blog Tag
@@ -54,15 +49,7 @@ Router.map ->
 
   @route 'blogTagged',
     path: '/blog/tag/:tag'
-    controller: 'BlogController'
-
-    onBeforeAction: ->
-      if Blog.settings.blogIndexTemplate
-        @template = Blog.settings.blogIndexTemplate
-
-      # Set up our own 'waitOn' here since IR does not atually wait on 'waitOn'
-      # (see https://github.com/EventedMind/iron-router/issues/265).
-      @subscribe('taggedPosts', @params.tag).wait()
+    template: 'dynamic'
 
     waitOn: -> [
       Meteor.subscribe 'taggedPosts', @params.tag
@@ -73,11 +60,9 @@ Router.map ->
 
     data: ->
       posts: Post.where
-        published: true
         tags: @params.tag
       ,
-        sort:
-          publishedAt: -1
+        sort: publishedAt: -1
 
   #
   # Show Blog
@@ -85,32 +70,39 @@ Router.map ->
 
   @route 'blogShow',
     path: '/blog/:slug'
-    controller: 'BlogController'
+    template: 'dynamic'
     notFoundTemplate: 'blogNotFound'
 
+    onRun: ->
+      Session.set('slug', @params.slug)
+
     onBeforeAction: ->
+      if Blog.settings.blogNotFoundTemplate
+        @notFoundTemplate = Blog.settings.blogNotFoundTemplate
+
       if Blog.settings.blogShowTemplate
-        @template = Blog.settings.blogShowTemplate
+        tpl = Blog.settings.blogShowTemplate
 
         # If the user has a custom template, and not using the helper, then
-        # maintain the package Javascript so that OpenGraph tags and share
-        # buttons still work.
+        # maintain the package Javascript.
         pkgFunc = Template.blogShowBody.rendered
-        userFunc = Template[@template].rendered
+        userFunc = Template[tpl].rendered
 
         if userFunc
-          Template[@template].rendered = ->
+          Template[tpl].rendered = ->
             pkgFunc.call(@)
             userFunc.call(@)
         else
-          Template[@template].rendered = pkgFunc
+          Template[tpl].rendered = pkgFunc
+
+    action: ->
+      @render() if @ready()
 
     waitOn: -> [
-      Meteor.subscribe 'singlePost', @params.slug
+      Meteor.subscribe 'singlePostBySlug', @params.slug
+      Meteor.subscribe 'commentsBySlug', @params.slug
       Meteor.subscribe 'authors'
     ]
-
-    fastRender: true
 
     data: ->
       Post.first slug: @params.slug
@@ -121,66 +113,52 @@ Router.map ->
 
   @route 'blogAdmin',
     path: '/admin/blog'
-    controller: 'BlogController'
+    template: 'dynamic'
+
+    onBeforeAction: (pause) ->
+      if Meteor.loggingIn()
+        return pause()
+
+      Meteor.call 'isBlogAuthorized', (err, authorized) =>
+        if not authorized
+          return @redirect('/blog')
 
     waitOn: ->
-      [ Meteor.subscribe 'posts'
+      [ Meteor.subscribe 'postForAdmin'
         Meteor.subscribe 'authors' ]
 
-    onBeforeAction: (pause) ->
-
-      if Blog.settings.blogAdminTemplate
-        @template = Blog.settings.blogAdminTemplate
-
-      if Meteor.loggingIn()
-        return pause()
-
-      Meteor.call 'isBlogAuthorized', (err, authorized) =>
-        if not authorized
-          return @redirect('/blog')
+    data: ->
+      true
 
   #
-  # New Blog
-  #
-
-  @route 'blogAdminNew',
-    path: '/admin/blog/new'
-
-    onBeforeAction: (pause) ->
-
-      if Blog.settings.blogAdminNewTemplate
-        @template = Blog.settings.blogAdminNewTemplate
-
-      if Meteor.loggingIn()
-        return pause()
-
-      Meteor.call 'isBlogAuthorized', (err, authorized) =>
-        if not authorized
-          return @redirect('/blog')
-
-  #
-  # Edit Blog
+  # New/Edit Blog
   #
 
   @route 'blogAdminEdit',
-    path: '/admin/blog/edit/:slug'
-    controller: 'BlogController'
+    path: '/admin/blog/edit/:id'
+    template: 'dynamic'
 
     onBeforeAction: (pause) ->
-      if Blog.settings.blogAdminEditTemplate
-        @template = Blog.settings.blogAdminEditTemplate
-
       if Meteor.loggingIn()
         return pause()
 
-      Meteor.call 'isBlogAuthorized', (err, authorized) =>
+      Meteor.call 'isBlogAuthorized', @params.id, (err, authorized) =>
         if not authorized
           return @redirect('/blog')
 
+    action: ->
+      @render() if @ready()
+
+    onRun: ->
+      Session.set 'postId', @params.id
+      Session.set('editorTemplate', 'visualEditor')
+      Session.set('currentPost', Post.first(@params.id))
+
     waitOn: -> [
-      Meteor.subscribe 'singlePost', @params.slug
+      Meteor.subscribe 'singlePostById', @params.id
       Meteor.subscribe 'authors'
+      Meteor.subscribe 'postTags'
     ]
 
     data: ->
-      Post.first slug: @params.slug
+      true

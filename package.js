@@ -11,10 +11,12 @@ Package.on_use(function(api) {
    */
 
   api.use([
+    'session',
     'templating',
     'ui',
     'less',
-    'ace-embed'
+    'reactive-table',
+    'shareit'
   ], 'client');
 
   /**
@@ -22,16 +24,26 @@ Package.on_use(function(api) {
    */
 
   api.add_files([
-    'client/stylesheets/lib/bootstrap-switch.css',
+    'client/stylesheets/lib/side-comments/side-comments.css',
+    'client/stylesheets/lib/side-comments/default.css',
+    'client/stylesheets/lib/medium-editor.css',
+    'client/stylesheets/lib/medium-themes/bootstrap.css',
+    'client/stylesheets/lib/medium-editor-insert-plugin.css',
+    'client/stylesheets/lib/bootstrap-tagsinput.css',
     'client/boot.coffee',
-    'client/compatibility/bootstrap-switch.js',
+    'client/compatibility/side-comments.js',
+    'client/compatibility/medium-editor.js',
+    'client/compatibility/medium-editor-insert-plugin.all.js',
+    'client/compatibility/bootstrap-tagsinput.js',
+    'client/compatibility/typeahead.jquery.js',
+    'client/compatibility/beautify-html.js',
+    'client/compatibility/highlight.pack.js',
     'client/views/404.html',
-    'client/views/admin/nav.html',
+    'client/views/dynamic.html',
+    'client/views/dynamic.coffee',
     'client/views/admin/admin.less',
     'client/views/admin/admin.html',
     'client/views/admin/admin.coffee',
-    'client/views/admin/new.html',
-    'client/views/admin/new.coffee',
     'client/views/admin/edit.html',
     'client/views/admin/edit.coffee',
     'client/views/blog/blog.less',
@@ -43,10 +55,22 @@ Package.on_use(function(api) {
   ], 'client');
 
   /**
+   * Static assets for client
+   */
+
+  api.add_files([
+    'public/default-user.png',
+    'client/stylesheets/images/remove.png',
+    'client/stylesheets/images/resize-bigger.png',
+    'client/stylesheets/images/resize-smaller.png'
+  ], 'client', { isAsset: true });
+
+  /**
    * Files for server
    */
 
   api.add_files([
+    'collections/config.coffee',
     'server/boot.coffee',
     'server/rss.coffee',
     'server/publications.coffee'
@@ -56,7 +80,7 @@ Package.on_use(function(api) {
    * Packages for server
    */
 
-  Npm.depends({rss: '0.0.4'});
+  Npm.depends({ rss: '0.0.4' });
 
   /**
    * Packages for server and client
@@ -68,8 +92,8 @@ Package.on_use(function(api) {
     'accounts-base',
     'minimongoid',
     'moment',
-    'roles',
-    'marked'
+    'fileCollection',
+    'roles'
   ], both);
 
   /**
@@ -79,7 +103,10 @@ Package.on_use(function(api) {
   api.add_files([
     'router.coffee',
     'collections/author.coffee',
-    'collections/post.coffee'
+    'collections/post.coffee',
+    'collections/comment.coffee',
+    'collections/tag.coffee',
+    'collections/files.coffee'
   ], both);
 });
 

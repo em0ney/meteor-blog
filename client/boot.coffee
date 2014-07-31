@@ -5,15 +5,36 @@
 
 Blog =
   settings:
-    blogIndexTemplate: 'blogIndex'
-    blogShowTemplate: 'blogShow'
-    blogAdminTemplate: 'blogAdmin'
-    blogAdminNewTemplate:'blogAdminNew'
-    blogAdminEditTemplate: 'blogAdminEdit'
+    title: ''
+    blogIndexTemplate: null
+    blogShowTemplate: null
+    blogNotFoundTemplate: null
+    blogAdminTemplate: null
+    blogAdminEditTemplate: null
     pageSize: 20
+    excerptFunction: null
+    syntaxHighlighting: false
+    syntaxHighlightingTheme: 'github'
+    comments:
+      allowAnonymous: false
+      useSideComments: false
+      defaultImg: '/packages/blog/public/default-user.png'
+      userImg: 'avatar'
+      disqusShortname: 'elliottspira'
 
   config: (appConfig) ->
+    # No deep extend in underscore :-(
+    if appConfig.comments
+      @settings.comments = _.extend(@settings.comments, appConfig.comments)
+      delete appConfig.comments
     @settings = _.extend(@settings, appConfig)
+
+    if @settings.syntaxHighlightingTheme
+      $('<link>',
+        href: '//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/' + @settings.syntaxHighlightingTheme + '.min.css'
+        rel: 'stylesheet'
+      ).appendTo 'head'
+
 
 @Blog = Blog
 
@@ -25,36 +46,9 @@ Blog =
 
 Meteor.startup ->
   $('<link>',
-    href: '//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css'
+    href: '//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css'
     rel: 'stylesheet'
   ).appendTo 'head'
-
-  # Twitter
-  window.twttr = do (d = document, s = 'script', id = 'twitter-wjs') ->
-    t = undefined
-    js = undefined
-    fjs = d.getElementsByTagName(s)[0]
-    return  if d.getElementById(id)
-    js = d.createElement(s)
-    js.id = id
-    js.src = "https://platform.twitter.com/widgets.js"
-    fjs.parentNode.insertBefore js, fjs
-    window.twttr or (t =
-      _e: []
-      ready: (f) ->
-        t._e.push f
-    )
-
-  # Facebook
-  js = undefined
-  id = "facebook-jssdk"
-  ref = document.getElementsByTagName("script")[0]
-  return  if document.getElementById(id)
-  js = document.createElement("script")
-  js.id = id
-  js.async = true
-  js.src = "//connect.facebook.net/en_US/all.js"
-  ref.parentNode.insertBefore js, ref
 
   # Listen for any 'Load More' clicks
   $('body').on 'click', '.load-more', (e) ->
@@ -81,7 +75,8 @@ UI.registerHelper "blogFormatTags", (tags) ->
   return new Spacebars.SafeString str
 
 UI.registerHelper "joinTags", (list) ->
-  list.join(", ") if list?
+  if list
+    list.join ', '
 
 UI.registerHelper "blogPager", ->
   if Post.count() is Session.get 'postLimit'
